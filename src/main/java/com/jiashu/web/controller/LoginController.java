@@ -2,13 +2,10 @@ package com.jiashu.web.controller;
 
 import com.jiashu.web.auth.TokenGenerator;
 import com.jiashu.web.entity.ErrorInfo;
-import com.jiashu.web.entity.Setting;
 import com.jiashu.web.entity.User;
 import com.jiashu.web.entity.dto.*;
-import com.jiashu.web.service.AccountPluginService;
 import com.jiashu.web.service.SettingService;
 import com.jiashu.web.service.UserDetailService;
-import com.jiashu.web.utils.JsonUtil;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -23,9 +20,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.io.IOException;
-import java.util.Map;
 
 /**
  * Created on 2018/4/3 20:04.
@@ -43,13 +37,7 @@ public class LoginController {
     private UserDetailService userDetailService;
 
     @Autowired
-    private AccountPluginService accountPluginService;
-
-    @Autowired
     private TokenGenerator tokenGenerator;
-
-    @Autowired
-    private SettingService settingService;
 
     private static final int RETRY_NUM = 3;
 
@@ -71,62 +59,72 @@ public class LoginController {
         return new ResponseEntity<>(response, response.getStatusCode());
     }
 
-    @ApiOperation("用户注册")
+
+    @ApiOperation("用户注册接口")
+    @ApiResponses(@ApiResponse(code = 200, message = "Token and register user info"))
     @PostMapping("/signup")
     public ResponseEntity<Response<SignupInfo>> signup(@RequestBody SignupRequest signupRequest) {
-        logger.debug("New user is coming with: {}", signupRequest);
-        String email = signupRequest.getEmail();
-        String password = signupRequest.getPassword();
-        User user = userDetailService.loadUserByEmail(email);
-        if (user != null) {
-            Response<SignupInfo> notFoundResponse = new Response<>(ErrorInfo.NOT_FOUND, "User exist! ", "用户名已存在");
-            return new ResponseEntity<>(notFoundResponse, notFoundResponse.getStatusCode());
-        }
-//        userDetailService.addUser(email, password);
-        Setting setting = settingService.loadAccountSetting();
-        String settingStr = setting.getValue();
-        try {
-            Map<String, Object> settingMap = JsonUtil.strJson2Map(settingStr);
-            Map<String, Object> portSetting = (Map<String, Object>) settingMap.get("port");
-            Boolean isPortRandom = (Boolean) portSetting.get("random");
-            Integer portStart = (Integer) portSetting.get("start");
-            Integer portEnd = (Integer) portSetting.get("end");
-            int myPort = -1;
-            if (isPortRandom) {
-                myPort = generatePort(portStart, portEnd);
-            } else {
-                myPort = accountPluginService.getMaxPort(portStart, portEnd);
-                myPort = myPort + 1;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return null;
+        SignupInfo result = userDetailService.addUser(signupRequest);
+        Response<SignupInfo> response = new Response<>(result);
+        return new ResponseEntity<>(response, response.getStatusCode());
     }
 
-    private int generatePort(int portStart, int portEnd) {
-        int myPort = getRandomPort(portStart, portEnd);
-        boolean isExist = accountPluginService.checkIfPortExists(myPort);
-        int retry = 0;
-        if (isExist) {
-            for (int i = 0; i < RETRY_NUM; i++) {
-                retry++;
-                myPort = getRandomPort(portStart, portEnd);
-                isExist = accountPluginService.checkIfPortExists(myPort);
-                if (!isExist) {
-                    break;
-                }
-            }
-        }
-        if (retry == RETRY_NUM) {
-            return -1;
-        }
-        return myPort;
-    }
 
-    private int getRandomPort(int start, int end) {
-        int randomPort = (int) (Math.random() * (end - start + 1) + start);
-        return randomPort;
-    }
+//    @ApiOperation("用户注册")
+//    @PostMapping("/signup1")
+//    public ResponseEntity<Response<SignupInfo>> signup1(@RequestBody SignupRequest signupRequest) {
+//        logger.debug("New user is coming with: {}", signupRequest);
+//        String email = signupRequest.getEmail();
+//        String password = signupRequest.getPassword();
+//        User user = userDetailService.loadUserByEmail(email);
+//        if (user != null) {
+//            Response<SignupInfo> notFoundResponse = new Response<>(ErrorInfo.NOT_FOUND, "User exist! ", "用户名已存在");
+//            return new ResponseEntity<>(notFoundResponse, notFoundResponse.getStatusCode());
+//        }
+////        userDetailService.addUser(email, password);
+//        Setting setting = settingService.loadAccountSetting();
+//        String settingStr = setting.getValue();
+//        try {
+//            Map<String, Object> settingMap = JsonUtil.strJson2Map(settingStr);
+//            Map<String, Object> portSetting = (Map<String, Object>) settingMap.get("port");
+//            Boolean isPortRandom = (Boolean) portSetting.get("random");
+//            Integer portStart = (Integer) portSetting.get("start");
+//            Integer portEnd = (Integer) portSetting.get("end");
+//            int myPort = -1;
+//            if (isPortRandom) {
+//                myPort = generatePort(portStart, portEnd);
+//            } else {
+//                myPort = accountPluginService.getMaxPort(portStart, portEnd);
+//                myPort = myPort + 1;
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        return null;
+//    }
+//
+//    private int generatePort(int portStart, int portEnd) {
+//        int myPort = getRandomPort(portStart, portEnd);
+//        boolean isExist = accountPluginService.checkIfPortExists(myPort);
+//        int retry = 0;
+//        if (isExist) {
+//            for (int i = 0; i < RETRY_NUM; i++) {
+//                retry++;
+//                myPort = getRandomPort(portStart, portEnd);
+//                isExist = accountPluginService.checkIfPortExists(myPort);
+//                if (!isExist) {
+//                    break;
+//                }
+//            }
+//        }
+//        if (retry == RETRY_NUM) {
+//            return -1;
+//        }
+//        return myPort;
+//    }
+//
+//    private int getRandomPort(int start, int end) {
+//        int randomPort = (int) (Math.random() * (end - start + 1) + start);
+//        return randomPort;
+//    }
 }

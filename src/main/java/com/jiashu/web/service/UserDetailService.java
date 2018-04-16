@@ -1,6 +1,8 @@
 package com.jiashu.web.service;
 
 import com.jiashu.web.entity.User;
+import com.jiashu.web.entity.dto.SignupInfo;
+import com.jiashu.web.entity.dto.SignupRequest;
 
 /**
  * Created on 2018/4/9 10:43.
@@ -13,5 +15,5 @@ public interface UserDetailService {
 
     User loadUserByEmail(String email);
 
-    void addUser(String email, String password);
+    SignupInfo addUser(SignupRequest signup);
 }
