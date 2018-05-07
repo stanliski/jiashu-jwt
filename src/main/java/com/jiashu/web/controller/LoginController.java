@@ -4,7 +4,6 @@ import com.jiashu.web.auth.TokenGenerator;
 import com.jiashu.web.entity.ErrorInfo;
 import com.jiashu.web.entity.User;
 import com.jiashu.web.entity.dto.*;
-import com.jiashu.web.service.SettingService;
 import com.jiashu.web.service.UserDetailService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;

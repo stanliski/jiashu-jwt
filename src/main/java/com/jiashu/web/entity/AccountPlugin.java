@@ -26,7 +26,7 @@ public class AccountPlugin {
     private int port;
     @Column(name = "password")
     private String password;
-    @Column(name = "date")
+    @Column(name = "data")
     private String data;
     @Column(name = "status")
     private int status;
